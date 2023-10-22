@@ -17,7 +17,19 @@ def compute_discriminator_loss(
     # Do not use discrim_interp, interp, lamb. They are placeholders
     # for Q1.5.
     ##################################################################
-    loss = None
+    bce_loss = torch.nn.BCELoss()
+
+    # Discriminator Loss (D Loss)
+    # Loss on real data
+    real_labels = torch.ones_like(discrim_real)  # Target labels for real data
+    d_loss_real = bce_loss(torch.sigmoid(discrim_real), real_labels)
+
+    # Loss on fake data
+    fake_labels = torch.zeros_like(discrim_fake)  # Target labels for fake data
+    d_loss_fake = bce_loss(torch.sigmoid(discrim_fake), fake_labels)
+
+    # Total discriminator loss
+    d_loss = d_loss_real + d_loss_fake
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
@@ -28,7 +40,9 @@ def compute_generator_loss(discrim_fake):
     ##################################################################
     # TODO 1.3: Implement GAN loss for the generator.
     ##################################################################
-    loss = None
+    bce_loss = torch.nn.BCELoss()
+    real_labels = torch.ones_like(discrim_fake)
+    g_loss = bce_loss(torch.sigmoid(discrim_fake), real_labels)
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
