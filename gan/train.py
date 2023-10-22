@@ -174,7 +174,7 @@ def train_model(
                         # TODO 1.2: Generate samples using the generator.
                         # Make sure they lie in the range [0, 1]!
                         ##################################################################
-                        generated_samples = None
+                        generated_samples = gen(torch.randn(100, 128).cuda()).clamp(0, 1)
                         ##################################################################
                         #                          END OF YOUR CODE                      #
                         ##################################################################
