@@ -42,7 +42,7 @@ def compute_generator_loss(discrim_fake):
     ##################################################################
     bce_loss = torch.nn.BCELoss()
     real_labels = torch.ones_like(discrim_fake)
-    g_loss = bce_loss(torch.sigmoid(discrim_fake), real_labels)
+    loss = bce_loss(torch.sigmoid(discrim_fake), real_labels)
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################

@@ -28,10 +28,12 @@ class UpSampleConv2D(torch.jit.ScriptModule):
         # 3. Apply convolution and return output
         ##################################################################
         x = x.repeat(1, 1, self.upscale_factor, self.upscale_factor)
+        print('11111111111111111')
         
         x = F.pixel_shuffle(x, self.upscale_factor)
-        
+        print('2222222222')
         x = self.conv(x)
+        print('3333333333')
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -52,18 +54,24 @@ class DownSampleConv2D(torch.jit.ScriptModule):
         ##################################################################
         # TODO 1.1: Implement spatial mean pooling
         # 1. Use torch.nn.PixelUnshuffle to form an output of dimension
+
         # (batch, channel*downscale_factor^2, height, width)
+
+
         # 2. Then split channel-wise and reshape into
+
         # (downscale_factor^2, batch, channel, height, width) images
+
         # 3. Take the average across dimension 0, apply convolution,
         # and return the output
         ##################################################################
-        x = torch.nn.functional.pixel_unshuffle(x, self.downscale_ratio)
+        out = F.pixel_unshuffle(x, self.downscale_ratio)
+        #print(x.shape[1]//(self.downscale_ratio**2))
 
-        x = x.view(x.shape[0], self.downscale_ratio**2, x.shape[1] // (self.downscale_ratio**2), x.shape[2], x.shape[3])
+        out = out.reshape(int(self.downscale_ratio**2), out.size(dim=0), out.size(dim=1)//(int(self.downscale_ratio**2)), out.size(dim=2), out.size(dim=3))
 
-        x = x.mean(dim=0)
-        x = self.conv(x)
+        out = out.mean(dim=0)
+        x = self.conv(out)
         return x
         ##################################################################
         #                          END OF YOUR CODE                      #
@@ -102,7 +110,7 @@ class ResBlockUp(torch.jit.ScriptModule):
             UpSampleConv2D(input_channels=n_filters)
         )
 
-        self.upsample_residual = UpSampleConv2D(input_channels=input_channels)
+        #self.upsample_residual = UpSampleConv2D(input_channels=input_channels)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -115,12 +123,12 @@ class ResBlockUp(torch.jit.ScriptModule):
         # to the layer output.
         ##################################################################
         out_layers = self.layers(x)
-        residual = self.upsample_residual(x)
+        #residual = self.upsample_residual(x)
+        print('out_layers:', out_layers)
+        #print('residual:', residual)
 
-        print(out_layers)
-        print(residual)
-        #out = out_layers + residual
-        out = torch.add(out_layers, residual)
+        out = out_layers #+ residual
+        
 
         return out
         ##################################################################
@@ -291,9 +299,9 @@ class Generator(torch.jit.ScriptModule):
         ##################################################################
         self.dense = nn.Linear(in_features=128, out_features=2048, bias=True)
         self.layers = nn.Sequential(
-            ResBlockUp(128, n_filters=128),
-            ResBlockUp(128, n_filters=128),
-            ResBlockUp(128, n_filters=128),
+            ResBlockUp(input_channels=128, n_filters=128),
+            ResBlockUp(input_channels=128, n_filters=128),
+            ResBlockUp(input_channels=128, n_filters=128),
             nn.BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
             nn.ReLU(),
             nn.Conv2d(128, 3, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),
@@ -397,8 +405,8 @@ class Discriminator(torch.jit.ScriptModule):
         self.layers = nn.Sequential(
             ResBlockDown(3, n_filters=128),
             ResBlockDown(128, n_filters=128),
-            ResBlock(n_filters=128),
-            ResBlock(n_filters=128),
+            ResBlock(input_channels=128, n_filters=128),
+            ResBlock(input_channels=128, n_filters=128),
             nn.ReLU()
         )
         ##################################################################
