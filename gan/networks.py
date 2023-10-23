@@ -27,13 +27,13 @@ class UpSampleConv2D(torch.jit.ScriptModule):
         # (batch, channel, height*upscale_factor, width*upscale_factor)
         # 3. Apply convolution and return output
         ##################################################################
-        x = x.repeat(1, 1, self.upscale_factor, self.upscale_factor)
-        print('11111111111111111')
+        x = x.repeat(1, int(self.upscale_factor**2), 1, 1)
+        #print('11111111111111111')
         
         x = F.pixel_shuffle(x, self.upscale_factor)
-        print('2222222222')
+        #print('2222222222')
         x = self.conv(x)
-        print('3333333333')
+        #print('3333333333')
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -107,10 +107,10 @@ class ResBlockUp(torch.jit.ScriptModule):
             nn.Conv2d(input_channels, n_filters, kernel_size=kernel_size, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(n_filters, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
             nn.ReLU(),
-            UpSampleConv2D(input_channels=n_filters)
+            UpSampleConv2D(input_channels=n_filters, n_filters=n_filters, kernal_size=3, padding=1)
         )
 
-        #self.upsample_residual = UpSampleConv2D(input_channels=input_channels)
+        self.upsample_residual = UpSampleConv2D(input_channels=input_channels, n_filters=n_filters, kernal_size=1)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -123,11 +123,11 @@ class ResBlockUp(torch.jit.ScriptModule):
         # to the layer output.
         ##################################################################
         out_layers = self.layers(x)
-        #residual = self.upsample_residual(x)
-        print('out_layers:', out_layers)
+        residual = self.upsample_residual(x)
+        #print('out_layers:', out_layers)
         #print('residual:', residual)
 
-        out = out_layers #+ residual
+        out = out_layers + residual
         
 
         return out
@@ -161,10 +161,10 @@ class ResBlockDown(torch.jit.ScriptModule):
             nn.ReLU(),
             nn.Conv2d(input_channels, n_filters, kernel_size=kernel_size, stride=1, padding=1),
             nn.ReLU(),
-            DownSampleConv2D(input_channels=n_filters)
+            DownSampleConv2D(input_channels=n_filters, n_filters=n_filters, kernal_size=3, padding=1)
         )
 
-        self.downsample_residual = DownSampleConv2D(input_channels=input_channels)
+        self.downsample_residual = DownSampleConv2D(input_channels=input_channels, n_filters=n_filters, kernal_size=1)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -183,7 +183,7 @@ class ResBlockDown(torch.jit.ScriptModule):
         residual = self.downsample_residual(x)
 
         # Add the downsampled residual to the output
-        out = torch.add(out_layers, residual)
+        out = out_layers + residual
 
 
         return out
@@ -229,6 +229,8 @@ class ResBlock(torch.jit.ScriptModule):
 
         # Add the input (residual) to the output
         out += x
+
+        return out
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -333,7 +335,7 @@ class Generator(torch.jit.ScriptModule):
         # TODO 1.1: Generate n_samples latents and forward through the
         # network.
         ##################################################################
-        z = torch.randn(n_samples, 128)
+        z = torch.randn(n_samples, 128).cuda()
         out = self.forward_given_samples(z)
 
 
