@@ -29,7 +29,7 @@ def compute_discriminator_loss(
     d_loss_fake = bce_loss(torch.sigmoid(discrim_fake), fake_labels)
 
     # Total discriminator loss
-    d_loss = d_loss_real + d_loss_fake
+    loss = d_loss_real + d_loss_fake
     ##################################################################
     #                          END OF YOUR CODE                      #
     ##################################################################
