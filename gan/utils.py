@@ -52,7 +52,7 @@ def interpolate_latent_space(gen, path):
         z_samples[i * 10:(i + 1) * 10, 1] = -1.0 + alpha * 2.0
 
     # Step 2: Forward the samples through the generator
-    generated_samples = gen(z_samples.cuda()).clamp(0, 1)
+    generated_samples = gen(z_samples.size(0)).cuda().clamp(0, 1)
     
     # Step 3: Save out an image holding all 100 samples
     save_image(
@@ -60,7 +60,7 @@ def interpolate_latent_space(gen, path):
         path,
         nrow=10,
         normalize=True,
-        range=(0, 1)
+        #range=(0, 1)
     )
     ##################################################################
     #                          END OF YOUR CODE                      #

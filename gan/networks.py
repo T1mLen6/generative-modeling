@@ -34,6 +34,9 @@ class UpSampleConv2D(torch.jit.ScriptModule):
         #print('2222222222')
         x = self.conv(x)
         #print('3333333333')
+
+
+        return x
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -107,10 +110,10 @@ class ResBlockUp(torch.jit.ScriptModule):
             nn.Conv2d(input_channels, n_filters, kernel_size=kernel_size, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(n_filters, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
             nn.ReLU(),
-            UpSampleConv2D(input_channels=n_filters, n_filters=n_filters, kernal_size=3, padding=1)
+            UpSampleConv2D(input_channels=n_filters, n_filters=n_filters, kernel_size=3, padding=1)
         )
 
-        self.upsample_residual = UpSampleConv2D(input_channels=input_channels, n_filters=n_filters, kernal_size=1)
+        self.upsample_residual = UpSampleConv2D(input_channels=input_channels, n_filters=n_filters, kernel_size=1)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -161,10 +164,10 @@ class ResBlockDown(torch.jit.ScriptModule):
             nn.ReLU(),
             nn.Conv2d(input_channels, n_filters, kernel_size=kernel_size, stride=1, padding=1),
             nn.ReLU(),
-            DownSampleConv2D(input_channels=n_filters, n_filters=n_filters, kernal_size=3, padding=1)
+            DownSampleConv2D(input_channels=n_filters, n_filters=n_filters, kernel_size=3, padding=1)
         )
 
-        self.downsample_residual = DownSampleConv2D(input_channels=input_channels, n_filters=n_filters, kernal_size=1)
+        self.downsample_residual = DownSampleConv2D(input_channels=input_channels, n_filters=n_filters, kernel_size=1)
         ##################################################################
         #                          END OF YOUR CODE                      #
         ##################################################################
@@ -301,7 +304,7 @@ class Generator(torch.jit.ScriptModule):
         ##################################################################
         self.dense = nn.Linear(in_features=128, out_features=2048, bias=True)
         self.layers = nn.Sequential(
-            ResBlockUp(input_channels=128, n_filters=128),
+            ResBlockUp(128),
             ResBlockUp(input_channels=128, n_filters=128),
             ResBlockUp(input_channels=128, n_filters=128),
             nn.BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),

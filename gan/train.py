@@ -119,7 +119,7 @@ def train_model(
                 ##################################################################
                 # 1. Compute generator output
                 # Note: The number of samples must match the batch size.
-                generated_samples = gen(torch.randn(batch_size, 128).cuda()).clamp(0, 1)
+                generated_samples = gen(train_batch.size(0)).cuda()
                 # 2. Compute discriminator output on the train batch.
                 discrim_real = disc(train_batch)
                 # 3. Compute the discriminator output on the generated data.
@@ -132,8 +132,10 @@ def train_model(
                 # TODO 1.5 Compute the interpolated batch and run the
                 # discriminator on it.
                 ###################################################################
-                alpha = torch.rand(batch_size, 1, 1, 1, device=generated_samples.device)
-                interp = alpha * train_batch + (1 - alpha) * generated_samples
+                alpha = torch.rand(train_batch.size(0), 1, 1, 1).cuda().expand_as(train_batch)
+
+
+                interp = (alpha * train_batch + (1 - alpha) * generated_samples).detach().requires_grad_()
                 discrim_interp = disc(interp)
                 ##################################################################
                 #                          END OF YOUR CODE                      #
@@ -154,8 +156,8 @@ def train_model(
                     # TODO 1.2: Compute generator and discriminator output on
                     # generated data.
                     ###################################################################
-                    #fake_batch = None
-                    discrim_fake = disc(generated_samples)
+                    fake_batch = gen(train_batch.size(0)).cuda()
+                    discrim_fake = disc(fake_batch)
                     ##################################################################
                     #                          END OF YOUR CODE                      #
                     ##################################################################
@@ -174,7 +176,7 @@ def train_model(
                         # TODO 1.2: Generate samples using the generator.
                         # Make sure they lie in the range [0, 1]!
                         ##################################################################
-                        generated_samples = gen(torch.randn(100, 128).cuda()).clamp(0, 1)
+                        generated_samples = 0.5*(gen(train_batch.size(0)).cuda() + 1)
                         ##################################################################
                         #                          END OF YOUR CODE                      #
                         ##################################################################
