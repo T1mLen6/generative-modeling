@@ -33,16 +33,16 @@ class DiffusionModel(nn.Module):
         # TODO 3.1: Compute the cumulative products for current and
         # previous timesteps.
         ##################################################################
-        self.alphas_cumprod = None
-        self.alphas_cumprod_prev =  None
+        self.alphas_cumprod = torch.cumprod(alphas, dim=0)
+        self.alphas_cumprod_prev =  torch.cat([torch.tensor([1.]).to(self.device), self.alphas_cumprod[:-1]])
 
         ##################################################################
         # TODO 3.1: Pre-compute values needed for forward process.
         ##################################################################
         # This is the coefficient of x_t when predicting x_0
-        self.x_0_pred_coef_1 = None
+        self.x_0_pred_coef_1 = 1/torch.sqrt(self.alphas_cumprod)
         # This is the coefficient of pred_noise when predicting x_0
-        self.x_0_pred_coef_2 = None
+        self.x_0_pred_coef_2 = -self.x_0_pred_coef_1 * torch.sqrt(1. - self.alphas_cumprod)
 
         ##################################################################
         # TODO 3.1: Compute the coefficients for the mean.
