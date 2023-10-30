@@ -19,16 +19,14 @@ def compute_discriminator_loss(
     ##################################################################
     bce_loss = torch.nn.BCEWithLogitsLoss()
 
-    # Discriminator Loss (D Loss)
-    # Loss on real data
+
     real_labels = torch.ones_like(discrim_real)  # Target labels for real data
     d_loss_real = bce_loss(discrim_real, real_labels)
 
-    # Loss on fake data
+
     fake_labels = torch.zeros_like(discrim_fake)  # Target labels for fake data
     d_loss_fake = bce_loss(discrim_fake, fake_labels)
 
-    # Total discriminator loss
     loss = d_loss_real + d_loss_fake
     ##################################################################
     #                          END OF YOUR CODE                      #

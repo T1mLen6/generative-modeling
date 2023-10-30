@@ -185,7 +185,6 @@ class ResBlockDown(torch.jit.ScriptModule):
 
         residual = self.downsample_residual(x)
 
-        # Add the downsampled residual to the output
         out = out_layers + residual
 
 
@@ -229,8 +228,6 @@ class ResBlock(torch.jit.ScriptModule):
         # connection!
         ##################################################################
         out = self.layers(x)
-
-        # Add the input (residual) to the output
         out += x
 
         return out
